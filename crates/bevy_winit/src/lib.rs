@@ -94,7 +94,7 @@ fn change_window(world: &mut World) {
                             .to_physical::<f64>(scale_factor),
                     );
                 }
-                bevy_window::WindowCommand::SetVsync { .. } => (),
+                bevy_window::WindowCommand::SetPresentMode { .. } => (),
                 bevy_window::WindowCommand::SetResizable { resizable } => {
                     let window = winit_windows.get_window(id).unwrap();
                     window.set_resizable(resizable);
@@ -188,7 +188,7 @@ where
     F: FnMut(Event<'_, ()>, &EventLoopWindowTarget<()>, &mut ControlFlow),
 {
     use winit::platform::run_return::EventLoopExtRunReturn;
-    event_loop.run_return(event_handler)
+    event_loop.run_return(event_handler);
 }
 
 #[cfg(not(any(
