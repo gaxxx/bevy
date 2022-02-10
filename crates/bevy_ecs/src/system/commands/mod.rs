@@ -9,6 +9,7 @@ use crate::{
 use bevy_utils::tracing::{error, warn};
 pub use command_queue::CommandQueue;
 use std::marker::PhantomData;
+use crate::world::FromWorld;
 
 use super::Resource;
 
@@ -285,6 +286,19 @@ impl<'w, 's> Commands<'w, 's> {
     /// ```
     pub fn insert_resource<T: Resource>(&mut self, resource: T) {
         self.queue.push(InsertResource { resource })
+    }
+
+    /// Init a resource to the World, overwriting any previous value of the same type.
+    // See World::init_resource for more details.
+    // Example
+    // commands.init_resource(Scoreboard {
+    //     current_score: 0,
+    //     high_score: 0,
+    // });
+    pub fn init_resource<T: Resource + FromWorld>(&mut self) {
+        self.queue.push(InitResource::<T> {
+            phantom: Default::default()
+        })
     }
 
     /// Removes a resource from the [`World`].
@@ -720,6 +734,17 @@ pub struct InsertResource<T: Resource> {
 impl<T: Resource> Command for InsertResource<T> {
     fn write(self, world: &mut World) {
         world.insert_resource(self.resource);
+    }
+}
+
+pub struct InitResource<T: Resource + FromWorld> {
+    phantom: PhantomData<T>,
+}
+
+impl<T: Resource + FromWorld> Command for InitResource<T> {
+    fn write(self, world: &mut World) {
+        let t = T::from_world(world);
+        world.insert_resource(t);
     }
 }
 
